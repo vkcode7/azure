@@ -1,0 +1,5 @@
+- Login into linux VM from console, use PuTTY on Windows or just use Mac console directly
+- Install the runtime on linux VM using bash commands (refer .NET installation instructions for linux VM)
+- Publish .NET WebAPP to a folder and SFTP it to /homr/linuxuser/
+- Go to publish folder on linux VM console and run "dotnet webapp.dll"
+- This will run the webapp
