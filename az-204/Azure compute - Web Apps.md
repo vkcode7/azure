@@ -47,5 +47,14 @@
 - You can create rules to scale in/out the web apps
 - You can specify min/max count for web apps
 
+## Deployment Slots
+- Productions and Staging slots
+- Deploy on staging and verify
+- If everything is good, you can switch slots
+- can also rollback by going back to earlier slot
+- Under Deployment there is an option of slots
 
+## DEployment Slots Webapp with DB
+- When ealing with DB, you can create another DB say stagingdb and point the SQLConnection string to that by creating it via WebApp -> Env Variables -> Connection Strings
+- During SQLConnection creation, check the "Deployment Slots" and when you make a switch the webapp will use the Production based SQLConnection string.
 
