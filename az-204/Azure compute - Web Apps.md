@@ -54,7 +54,47 @@
 - can also rollback by going back to earlier slot
 - Under Deployment there is an option of slots
 
-## DEployment Slots Webapp with DB
+## Deployment Slots Webapp with DB
 - When ealing with DB, you can create another DB say stagingdb and point the SQLConnection string to that by creating it via WebApp -> Env Variables -> Connection Strings
 - During SQLConnection creation, check the "Deployment Slots" and when you make a switch the webapp will use the Production based SQLConnection string.
+
+## Azure App Configuraion
+We can create a resource of type "App Configuration" system wide and store our key/values such as SQL Connection strings there instead of WebApp specific level.<br>
+**App Configuration provides:**
+
+A fully managed service that can be set up in minutes.
+Flexible key representations and mappings.
+Versioning with labels.
+Point-in-time restores of configuration up to 30 days later.
+Native integration with popular frameworks, including .NET, Java, Python, and Javascript.
+Enhanced security through Azure-managed identities.
+Complete data encryption at rest or in transit.
+CI/CD integration with Azure Pipelines and Github Actions.
+Key Vault Reference support for direct access to secrets and certificates.
+Feature management with filters to limit the time or target group availability of each flag.
+
+To use it add "AzureAppConiguration" nuget packages to your project and connect to App Config using its connection string (settings -> access keys -> connection string)<br>
+Here is how it looks => Endpoint=https://appconfigvk.azconfig.io;Id=BD1X;Secret=HE1FuYChQfsl8Wd6PkfVBHIqMMkTVHjP+5AwRcJ5i=<br>
+// Load configuration from Azure App Configuration<br>
+builder.Configuration.AddAzureAppConfiguration(connectionString);<br>
+Now we can use configurayion object to access conn strings using their key names.
+
+https://learn.microsoft.com/en-us/azure/azure-app-configuration/quickstart-dotnet-core-app?tabs=windowscommandprompt
+
+## Feature Flags => App Config -> Operations -> Feature Manager
+You can define feature flags such as "Beta" and enable or disable it from there.<br>
+Install Microsoft.FeatureManager nuget package in your project<br>
+https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-feature-management
+
+```
+if (featureFlag) {
+    // Run the following code
+}
+```
+
+
+
+
+
+
 
