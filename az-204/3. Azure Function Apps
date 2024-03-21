@@ -2,3 +2,9 @@
 
 - Create a resource of type "Function App"
 - Give it a unique name
+- Select Code OR Conatiner as type
+- Select runtime stack (.NET, Python, Java, Node.js, Custom Handler or PowerShell core)
+- Select .NET Framework if .NET is selected above
+- Select OS type - Linux or Windows
+
+
