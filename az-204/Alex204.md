@@ -192,3 +192,12 @@ var decryptedText=cryptoClient.Decrypt(EncryptionAlgorithm.RsaOaep,encryptResult
 
 Console.WriteLine(Encoding.UTF8.GetString(decryptedText.Plaintext));
 ```
+
+
+## Managed Identities
+<strong>NOTE: As you see we are still embedding some keys in code such as client id, tenant id and app object secret. Work around is Managed Identitied.</strong>
+
+Gives a way for apps to authenticate without embedding credentials. Managed Ids are available for VMs, Web Apps, and Azure Functions. Managed Id for resource can be added to Entra Id and then used to assign permissions via RBAC.
+
+
+
