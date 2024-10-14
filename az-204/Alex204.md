@@ -199,5 +199,83 @@ Console.WriteLine(Encoding.UTF8.GetString(decryptedText.Plaintext));
 
 Gives a way for apps to authenticate without embedding credentials. Managed Ids are available for VMs, Web Apps, and Azure Functions. Managed Id for resource can be added to Entra Id and then used to assign permissions via RBAC.
 
+#### Managed Identity (MD) on a VM
+If you go to your VM and click on "Security" -> "Identity" on sidebar, there you can enable a System assigned Managed Identity (MD). This will register the VM in MS ENtra ID. From "Security" -> "Identity", you can now copy the Object (principal) ID of the VM and see role assignments.
 
+Now go to Azure Storage Account -> Access Control (IAM) -> Role Assignment, select generic Blob Data Reader role and then click on "Managed Identity", under select members you will see your VM, select the VM and permission will be assigned to it.
+
+Any hosted app on that VM will now be able to access the storage account without using credentials (use DefaultAzureCredential()).
+
+```c#
+using Azure.Identity;
+using Azure.Storage.Blobs;
+
+string containerName="data";
+string fileName="script01.ps1";
+string path=@"C:\tmp4\script01.ps1";
+
+string storageAccountName="yourappstore12345";
+string blobUri=$"https://{storageAccountName}.blob.core.windows.net/{containerName}/{fileName}";
+
+BlobClient blobClient= new BlobClient(new Uri(blobUri),new DefaultAzureCredential());
+
+await blobClient.DownloadToAsync(path);
+```
+Under the hood, the API gets the access token for VM identity from ENtra ID and use that for authorizations against stoarge account.
+
+<strong>How to use managed identities for Azure resources on an Azure VM to acquire an access token</strong>
+https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/how-to-use-vm-token
+Managed identities for Azure resources provide Azure services with an automatically managed identity in Microsoft Entra ID. You can use this identity to authenticate to any service that supports Microsoft Entra authentication, without having credentials in your code.
+
+This article provides various code and script examples for token acquisition. It also contains guidance about handling token expiration and HTTP errors.
+
+<strong>Getting the Access Token (OAuth endpoint)</strong>
+```c#
+string tokenUri="http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://storage.azure.com/";
+HttpClient httpClient=new HttpClient();
+httpClient.DefaultRequestHeaders.Add("Metadata","true");
+
+HttpResponseMessage responseMessage=await httpClient.GetAsync(tokenUri);
+
+string content=await responseMessage.Content.ReadAsStringAsync();
+
+Console.WriteLine(content);
+```
+
+<strong>Using the Access Token from previous step to access the Blob data</strong>
+```c#
+using System.Net.Http.Headers;
+using System.Text.Json;
+
+string tokenUri="http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://storage.azure.com/";
+HttpClient httpClient=new HttpClient();
+httpClient.DefaultRequestHeaders.Add("Metadata","true");
+
+HttpResponseMessage responseMessage=await httpClient.GetAsync(tokenUri);
+
+string content=await responseMessage.Content.ReadAsStringAsync();
+
+Dictionary<string,string>? values=JsonSerializer.Deserialize<Dictionary<string,string>>(content);
+
+foreach(KeyValuePair<string,string> pair in values)
+{
+    Console.WriteLine($"Key : {pair.Key}");
+    Console.WriteLine($"Value : {pair.Value}");
+}
+
+string containerName="data";
+string fileName="script01.ps1";
+
+string storageAccountName="appstore55455344243";
+string blobUri=$"https://{storageAccountName}.blob.core.windows.net/{containerName}/{fileName}";
+
+HttpClient client= new HttpClient();
+client.DefaultRequestHeaders.Add("x-ms-version","2024-05-04");
+client.DefaultRequestHeaders.Authorization= new AuthenticationHeaderValue("Bearer",values["access_token"]);
+
+HttpResponseMessage message=await client.GetAsync(blobUri);
+string blobContent=await message.Content.ReadAsStringAsync();
+
+Console.WriteLine(blobContent);
+```
 
