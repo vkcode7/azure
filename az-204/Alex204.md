@@ -193,13 +193,12 @@ var decryptedText=cryptoClient.Decrypt(EncryptionAlgorithm.RsaOaep,encryptResult
 Console.WriteLine(Encoding.UTF8.GetString(decryptedText.Plaintext));
 ```
 
-
 ## Managed Identities
 <strong>NOTE: As you see we are still embedding some keys in code such as client id, tenant id and app object secret. Work around is Managed Identitied.</strong>
 
 Gives a way for apps to authenticate without embedding credentials. Managed Ids are available for VMs, Web Apps, and Azure Functions. Managed Id for resource can be added to Entra Id and then used to assign permissions via RBAC.
 
-#### Managed Identity (MD) on a VM
+#### Managed Identity (MI) on a VM
 If you go to your VM and click on "Security" -> "Identity" on sidebar, there you can enable a System assigned Managed Identity (MD). This will register the VM in MS ENtra ID. From "Security" -> "Identity", you can now copy the Object (principal) ID of the VM and see role assignments.
 
 Now go to Azure Storage Account -> Access Control (IAM) -> Role Assignment, select generic Blob Data Reader role and then click on "Managed Identity", under select members you will see your VM, select the VM and permission will be assigned to it.
@@ -278,4 +277,68 @@ string blobContent=await message.Content.ReadAsStringAsync();
 
 Console.WriteLine(blobContent);
 ```
+
+### System Assigned vs User Assigned.
+When we enabled identity, we enabled "System" assigned MI. Under "Security" -> "Identity", there are two options "System" and "User". For User, we can create a "User Assigned Managed Identity" as a new resource and attach it to a VM or Azure Function, that way each VM or a Azure Function wont get a system id created. If a VM is deleted then that system id will also go away but in case of a user assigned id, it will persist and can be assigned to another VM/Azure Function. It can be attached to multiple resources.
+
+### Azure Function
+```c#
+using Azure.Identity;
+using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+
+namespace Company.Function
+{
+    public class apptrigger
+    {
+        private readonly ILogger<apptrigger> _logger;
+
+        public apptrigger(ILogger<apptrigger> logger)
+        {
+            _logger = logger;
+        }
+
+        [Function("apptrigger")]
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+        {
+            string containerName="data";
+            string fileName="script01.ps1";            
+
+            string storageAccountName="appstore55455344243";
+            string blobUri=$"https://{storageAccountName}.blob.core.windows.net/{containerName}/{fileName}";
+
+
+             BlobClient blobClient= new BlobClient(new Uri(blobUri),new DefaultAzureCredential());
+             
+             var response=blobClient.DownloadContent();
+             string blobContent=response.Value.Content.ToString();
+
+             return new OkObjectResult(blobContent);
+        }
+    }
+}
+```
+
+### MI and Key Vault
+Same way a user can go to Key Vault and assign MI of a particular function or VM key vault access permissions and then access the secret.
+
+Go bacn to Azure Function app, and in the Settings -> Environment Variables you can define "APPSECRET" which is a secret name as Key and secret URI as value. Using this URI we will then access the secret value from the vault.
+
+The code will look like this:
+```c#
+        [Function("apptrigger")]
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+        {
+            string secretReference="APPSECRET";
+            string? value=System.Environment.GetEnvironmentVariable(secretReference, EnvironmentVariableTarget.Process);
+            return new OkObjectResult(value);
+        }
+```
+
+### Shared Access Signatures
+Under a resource (say a Storage Account), "Security + Networking", there is another item "Shared Access Signatures", using this you can generate a connection string that has more granular limits on access and use that connection string to access a resource say a storage account.
+
 
