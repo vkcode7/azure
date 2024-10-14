@@ -1,4 +1,4 @@
-## Section 10: Implementing Azure Security and Auth
+# Section 10: Implementing Azure Security and Auth
 
 ### MS Entra ID: (previously aka Azure Active Directory) - An Identity Provider
 This is a cloud based identity and access management service. Can be used for Azure, MS 365 and other SaaS based softwares. Here you can use it for:
@@ -371,3 +371,9 @@ Use Case: Useful when you need to grant limited, time-bound access to certain st
 
 
 
+# Section 13: Event and Message based solutions, API management
+
+- Storage Queue - Simple message queue
+- Azure Messaging Bus - Enterprise messaging platform
+- Event Hubs - Here you ingest event data in real time
+- Event Grid - build event driven applications
