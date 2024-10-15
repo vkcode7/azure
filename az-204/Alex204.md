@@ -377,3 +377,7 @@ Use Case: Useful when you need to grant limited, time-bound access to certain st
 - Azure Messaging Bus - Enterprise messaging platform
 - Event Hubs - Here you ingest event data in real time
 - Event Grid - build event driven applications
+
+### Storage Queue
+  <img src="./images/stqueue.PNG" alt="drawing" width="50%"/>
+
