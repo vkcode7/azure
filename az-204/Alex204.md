@@ -379,5 +379,128 @@ Use Case: Useful when you need to grant limited, time-bound access to certain st
 - Event Grid - build event driven applications
 
 ### Storage Queue
-  <img src="./images/stqueue.PNG" alt="drawing" width="50%"/>
+<img src="./images/stqueue.PNG" alt="drawing" width="50%"/>
+
+Create a new queue "appqueue" as shown in SS:<br>
+<img src="./images/appqueue.PNG" alt="drawing" width="50%"/>
+
+#### Post Message:
+The following script can be used to post messages in this Q:
+```c#
+// First add the package - dotnet add package Azure.Storage.Queues
+using Azure.Storage.Queues;
+
+string queueName="appqueue";
+string connectionString="DefaultEndpointsProtocol=https;AccountName=appstore443434323;AccountKey=k+d/Y8Dd4ZVaEFyNoy7u0I86ieqB/yPk/lXMwiKjUH3HM8JsD4s0En3KvSjiXCxnXjdkknggD5/X+AStl9yTWA==;EndpointSuffix=core.windows.net";
+
+for(int i=0;i<5;i++)
+await AddMessage($"Test Message {i}");
+
+async Task AddMessage(string message)
+{
+    QueueClient queueClient=new QueueClient(connectionString,queueName);
+    await queueClient.SendMessageAsync(message);
+    Console.WriteLine($"Message added to queue - {message}");
+}
+```
+
+#### Peek Message - look at message but do NOT delete it
+```c#
+async Task PeekMessage(int messageCount)
+{
+    QueueClient queueClient=new QueueClient(connectionString,queueName);
+    PeekedMessage[] messages=await queueClient.PeekMessagesAsync(maxMessages: messageCount);
+
+    foreach(PeekedMessage message in messages)
+    {
+    Console.WriteLine($"Message ID #{message.MessageId}");
+    Console.WriteLine($"Message Body #{message.Body}");
+    }
+}
+```
+
+#### Recieve Message - delete the message after processing it
+```c#
+async Task ReceiveMessage(int messageCount)
+{
+    QueueClient queueClient=new QueueClient(connectionString,queueName);
+    QueueMessage[] messages=await queueClient.ReceiveMessagesAsync(maxMessages: messageCount);
+    // Receiving the messages will make the messages invisible 
+    // During this time you can process the messages
+    // To delete the message , we need to delete them specifically
+
+    // This value is required to delete the Message. If deletion fails using this popreceipt then the message has been dequeued by another client.
+    foreach(QueueMessage message in messages)
+    {
+      Console.WriteLine($"Deleting message with Message ID #{message.MessageId}");
+      await queueClient.DeleteMessageAsync(message.MessageId,message.PopReceipt);
+    }
+}
+```
+
+#### Get number of messages in the Q
+```c#
+int GetQueueLength()
+{
+    QueueClient queueClient=new QueueClient(connectionString,queueName);
+    return  queueClient.GetProperties().Value.ApproximateMessagesCount;
+}
+```
+
+#### Azure Queue Storage Trigger
+We can create a Azure Function using template "Azure Queue Storage Trigger" in VS code. Note that if the code cant process the message and fails, it can create another queue say appqueue-poison and move the errorig messages to that Q. Q Trigger can also use your custom input classes to recieve the data.
+```c#
+using System;
+using Azure.Storage.Queues.Models;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+
+namespace Common.Services
+{
+    public class QueueTrigger
+    {
+        private readonly ILogger<QueueTrigger> _logger;
+
+        public QueueTrigger(ILogger<QueueTrigger> logger)
+        {
+            _logger = logger;
+        }
+
+        [Function(nameof(QueueTrigger))]
+        public void Run([QueueTrigger("appqueue", Connection = "62c5fc_STORAGE")] QueueMessage message)
+        {
+            _logger.LogInformation($"C# Queue trigger function processed: {message.MessageText}");
+        }
+    }
+}
+```
+
+#### Output to Storage Table: output of azure q storage trigger can be stored in Q Table:
+```c#
+public class TableOrder
+{
+    public string? PartitionKey { get; set; }
+    public string? RowKey { get; set; }
+    public decimal Price { get; set;}
+}
+
+// We need to add the package
+// dotnet add package Microsoft.Azure.Functions.Worker.Extensions.Tables
+[Function(nameof(QueueTrigger))]
+[TableOutput("Orders",Connection ="62c5fc_STORAGE")]
+public object Run([QueueTrigger("appqueue", Connection = "62c5fc_STORAGE")] Order order)
+{
+    TableOrder tableOrder= new TableOrder()
+    {
+        PartitionKey=order.CourseName,
+        RowKey=$"Order{order.Id}",
+        Price=order.Price
+    };
+
+   _logger.LogInformation("Added to table");
+   return tableOrder;
+}
+```
+
+### Azure Service Bus
 
