@@ -502,5 +502,7 @@ public object Run([QueueTrigger("appqueue", Connection = "62c5fc_STORAGE")] Orde
 }
 ```
 
-### Azure Service Bus
+### Azure Service Bus - Fully managed Enterprise Service Broker; msg can be sent to service bus queues or to service bus topics
+<img src="./images/azServiceBus.PNG" alt="drawing" width="50%"/>
+
 
