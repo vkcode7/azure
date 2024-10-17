@@ -115,6 +115,12 @@ client_id=00001111-aaaa-2222-bbbb-3333cccc4444
 ```
 This request will return a token that will be used in API http headers to give access to Graph API. (https://learn.microsoft.com/en-us/graph/api/overview?view=graph-rest-1.0)
 
+There are two steps involved in essence:
+ <strong>STEP 1: Get the OAuth 2.0 token</strong>
+ <img src="./images/gettoken.PNG" alt="drawing" width="50%"/>
+
+ <strong>STEP 2: Make the API calls</strong>
+ <img src="./images/getusers.PNG" alt="drawing" width="50%"/>
 
 ## Key Vault
 
