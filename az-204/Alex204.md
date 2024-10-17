@@ -115,12 +115,15 @@ client_id=00001111-aaaa-2222-bbbb-3333cccc4444
 ```
 This request will return a token that will be used in API http headers to give access to Graph API. (https://learn.microsoft.com/en-us/graph/api/overview?view=graph-rest-1.0)
 
-There are two steps involved in essence:<br>
+There are two steps involved in essence:<br><br>
  <strong>STEP 1: Get the OAuth 2.0 token - https://login.microsoftonline.com/1a738633-1476-4d96-828c-fa5727a31ca7/oauth2/v2.0/token</strong><br>
  <img src="./images/gettoken.PNG" alt="drawing" width="100%"/>
- <br>
- 1a738633-1476-4d96-828c-fa5727a31ca7 in the URL is Entra ID as in SS below:<br>
-<img src="./images/entraid.PNG" alt="drawing" width="100%"/><br>
+ <br><br>
+ 1a738633-1476-4d96-828c-fa5727a31ca7 in the URL is Entra ID as in SS below:<br><br>
+<img src="./images/entraid.PNG" alt="drawing" width="100%"/><br><br>
+
+client id comes from the app registered in Entra:<br><br>
+<img src="./images/appreg.PNG" alt="drawing" width="100%"/><br><br>
 
  <strong>STEP 2: Make the API calls - https://graph.microsoft.com/v1.0/users</strong><br>
  <img src="./images/getusers.PNG" alt="drawing" width="100%"/>
