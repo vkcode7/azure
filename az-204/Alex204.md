@@ -128,6 +128,59 @@ client id comes from the app registered in Entra:<br><br>
  <strong>STEP 2: Make the API calls - https://graph.microsoft.com/v1.0/users</strong><br>
  <img src="./images/getusers.PNG" alt="drawing" width="100%"/>
 
+### Equivalent code in Python
+```py
+import msal
+import requests
+import json
+
+# Azure AD app configuration
+CLIENT_ID = 'f73b654a-8cf5-4636-971a-99f5844440af'  # Application (client) ID
+TENANT_ID = '1a738633-1476-4d96-828c-fa5727a31ca7'  # Directory (tenant) ID, or 'common' for multi-tenant
+CLIENT_SECRET = 'super_secret_value'  # Client Secret
+
+AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
+SCOPES = ['https://graph.microsoft.com/.default']  # Use .default to access all permissions
+
+# Initialize MSAL Confidential Client Application
+msal_app = msal.ConfidentialClientApplication(
+    CLIENT_ID, authority=AUTHORITY, client_credential=CLIENT_SECRET
+)
+
+# Function to acquire a token using Client Credentials Flow
+def acquire_token():
+    print("Requesting token...")
+
+    # Acquire token using client credentials
+    result = msal_app.acquire_token_for_client(scopes=SCOPES)
+
+    if 'access_token' in result:
+        print("Token acquired successfully!")
+        print("Bearer " + result['access_token'])
+        return result['access_token']
+    else:
+        raise Exception(f"Error acquiring token: {json.dumps(result, indent=2)}")
+
+# Function to get emails using the Microsoft Graph API
+def get_users(access_token):
+    graph_url = 'https://graph.microsoft.com/v1.0/users'
+    headers = {'Authorization': f'Bearer {access_token}'}
+    
+    response = requests.get(graph_url, headers=headers)
+
+    if response.status_code == 200:
+        print(response.json())
+    else:
+        print(f"Error fetching users information: {response.status_code}")
+        print(response.text)
+
+# Step 1: Get access token
+access_token = acquire_token()
+
+# Step 2: Access Microsoft Graph API to retrieve user emails
+get_users(access_token)
+```
+
 ## Key Vault
 
 Can be used to store Encryption Keys, Certificates, and Secrets.<br>
